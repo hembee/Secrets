@@ -64,46 +64,72 @@ app.get("/login", (req, res) => {
 app.get("/register", (req, res) => {
   res.render("register");
 });
+app.get("/secrets", (req, res) => {
+  if (req.isAuthenticated()) {
+    res.render("secrets");
+  } else {
+    res.redirect("/login");
+  }
+});
 
 // POST REQUESTS
 
+// app.post("/register", (req, res) => {
+//   bcrypt.hash(req.body.password, saltRounds, (err, hash) => {
+//     const newUser = new User({
+//       email: req.body.username,
+//       password: hash,
+//     });
+//     newUser.save((err) => {
+//       if (err) {
+//         console.log(err);
+//       } else {
+//         res.render("secrets");
+//       }
+//     });
+//   });
+// });
+
 app.post("/register", (req, res) => {
-  bcrypt.hash(req.body.password, saltRounds, (err, hash) => {
-    const newUser = new User({
-      email: req.body.username,
-      password: hash,
-    });
-    newUser.save((err) => {
+  User.register(
+    { username: req.body.username },
+    req.body.password,
+    (err, user) => {
       if (err) {
         console.log(err);
+        res.redirect("/register");
       } else {
-        res.render("secrets");
-      }
-    });
-  });
-});
-
-app.post("/login", (req, res) => {
-  const username = req.body.username;
-  const password = req.body.password;
-  User.findOne({ email: username }, (err, foundUser) => {
-    if (err) {
-      console.log(err);
-    } else {
-      if (foundUser) {
-        bcrypt.compare(password, foundUser.password, (req, result) => {
-          if (result === true) {
-            res.render("secret");
-          }
+        passport.authenticate("local")(req, res, () => {
+          res.redirect("/secrets");
         });
-
-        // if (foundUser.password === password) {
-        //   res.render("secrets");
-        // }
       }
     }
-  });
+  );
 });
+
+app.post("/login", (req, res) => {});
+
+// app.post("/login", (req, res) => {
+//   const username = req.body.username;
+//   const password = req.body.password;
+//   User.findOne({ email: username }, (err, foundUser) => {
+//     if (err) {
+//       console.log(err);
+//     } else {
+//       if (foundUser) {
+//         bcrypt.compare(password, foundUser.password, (req, result) => {
+//           if (result === true) {
+//             res.render("secrets");
+//           }
+//         });
+
+//         // if (foundUser.password === password) {
+//         //   res.render("secrets");
+//         // }
+//       }
+//     }
+//   });
+// });
 
 app.listen(3000, () => {
   console.log("Server started at port 3000");
