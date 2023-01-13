@@ -71,7 +71,14 @@ app.get("/secrets", (req, res) => {
     res.redirect("/login");
   }
 });
-
+app.get("/logout", (req, res) => {
+  req.logout((err) => {
+    if (!err) {
+      console.log("succesfully logged out")
+    }
+  });
+  res.redirect("/");
+});
 // POST REQUESTS
 
 // app.post("/register", (req, res) => {
@@ -107,7 +114,22 @@ app.post("/register", (req, res) => {
   );
 });
 
-app.post("/login", (req, res) => {});
+app.post("/login", (req, res) => {
+  const user = new User({
+    username: req.body.username,
+    password: req.body.password,
+  });
+
+  req.login(user, (err) => {
+    if (err) {
+      console.log(err);
+    } else {
+      passport.authenticate("local")(req, res, () => {
+        res.redirect("/secrets");
+      });
+    }
+  });
+});
 
 // app.post("/login", (req, res) => {
 //   const username = req.body.username;
